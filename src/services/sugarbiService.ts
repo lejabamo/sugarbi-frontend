@@ -160,6 +160,12 @@ class SugarBIService {
     return response.data;
   }
 
+  // Procesar consulta del chatbot con LangChain
+  async processChatQueryLangChain(query: string): Promise<ChatResponse> {
+    const response = await api.post('/api/chat/langchain', { query });
+    return response.data;
+  }
+
   // Solo parsear consulta (sin ejecutar SQL)
   async parseQuery(query: string): Promise<any> {
     const response = await api.post('/api/query/parse', { query });

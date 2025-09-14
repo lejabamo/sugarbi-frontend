@@ -56,13 +56,13 @@ const Chatbot: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response: ChatResponse = await sugarbiService.processChatQuery(inputValue);
+      const response: ChatResponse = await sugarbiService.processChatQueryLangChain(inputValue);
       
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
         content: response.success 
-          ? `Encontré ${response.data.record_count} registros para tu consulta.`
+          ? (response.data.natural_response || `Encontré ${response.data.record_count} registros para tu consulta.`)
           : response.error || 'Error al procesar la consulta',
         timestamp: new Date(),
         visualization: response.success ? response.data.visualization : undefined,

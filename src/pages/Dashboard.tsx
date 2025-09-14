@@ -20,14 +20,30 @@ const Dashboard: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
-      // Cargar estadísticas y top cosechas en paralelo
-      const [statsData, topCosechasData] = await Promise.all([
-        sugarbiService.getEstadisticas(),
-        sugarbiService.getTopCosechas('toneladas', 5)
-      ]);
-
-      setStats(statsData);
+      // Cargar solo top cosechas por ahora (estadísticas las haremos después)
+      const topCosechasData = await sugarbiService.getTopCosechas('toneladas', 5);
       setTopCosechas(topCosechasData);
+      
+      // Crear estadísticas básicas desde los datos de cosecha
+      const totalToneladas = topCosechasData.reduce((sum, c) => sum + (c.toneladas_cana_molida || 0), 0);
+      const promedioTCH = topCosechasData.reduce((sum, c) => sum + (c.tch || 0), 0) / topCosechasData.length;
+      const promedioBrix = topCosechasData.reduce((sum, c) => sum + (c.brix || 0), 0) / topCosechasData.length;
+      const promedioSacarosa = topCosechasData.reduce((sum, c) => sum + (c.sacarosa || 0), 0) / topCosechasData.length;
+      
+      setStats({
+        total_dimfinca: new Set(topCosechasData.map(c => c.id_finca)).size,
+        total_dimvariedad: new Set(topCosechasData.map(c => c.codigo_variedad)).size,
+        total_dimzona: new Set(topCosechasData.map(c => c.codigo_zona)).size,
+        total_dimtiempo: new Set(topCosechasData.map(c => c.codigo_tiempo)).size,
+        total_hechos_cosecha: topCosechasData.length,
+        total_cosechas: topCosechasData.length,
+        total_toneladas: totalToneladas,
+        promedio_tch: promedioTCH,
+        promedio_brix: promedioBrix,
+        promedio_sacarosa: promedioSacarosa,
+        año_inicio: 2024,
+        año_fin: 2025
+      });
     } catch (err: any) {
       setError(err.message || 'Error al cargar los datos del dashboard');
     } finally {
@@ -98,16 +114,16 @@ const Dashboard: React.FC = () => {
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top 5 Fincas por Producción */}
+        {/* Top 5 Cosechas por Producción */}
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Top 5 Fincas por Producción
+            Top 5 Cosechas por Producción
           </h3>
           {topCosechas.length > 0 ? (
             <Chart
               type="bar"
               data={{
-                labels: topCosechas.map(c => c.nombre_finca),
+                labels: topCosechas.map((c, index) => `Finca ${c.id_finca}`),
                 datasets: [{
                   label: 'Toneladas',
                   data: topCosechas.map(c => c.toneladas_cana_molida),
@@ -125,7 +141,17 @@ const Dashboard: React.FC = () => {
                 },
                 scales: {
                   y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: 'Toneladas'
+                    }
+                  },
+                  x: {
+                    title: {
+                      display: true,
+                      text: 'Fincas'
+                    }
                   }
                 }
               }}
@@ -176,6 +202,71 @@ const Dashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Tabla de datos de cosecha */}
+      {topCosechas.length > 0 && (
+        <div className="card">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Detalles de Cosechas
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Finca
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Variedad
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Zona
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Toneladas
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    TCH
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Brix
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Sacarosa
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {topCosechas.map((cosecha, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      Finca {cosecha.id_finca}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      Var. {cosecha.codigo_variedad}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      Zona {cosecha.codigo_zona}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {cosecha.toneladas_cana_molida?.toLocaleString() || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {cosecha.tch?.toFixed(2) || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {cosecha.brix?.toFixed(2) || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {cosecha.sacarosa?.toFixed(2) || 'N/A'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Información adicional */}
       {stats && (
