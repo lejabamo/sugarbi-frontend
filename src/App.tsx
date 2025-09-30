@@ -4,8 +4,7 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Chatbot from './pages/Chatbot';
-import OLAP from './pages/OLAP';
-import Analytics from './pages/Analytics';
+import OLAPAnalytics from './pages/OLAPAnalytics';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -26,8 +25,8 @@ function App() {
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="chatbot" element={<Chatbot />} />
-              <Route path="olap" element={<OLAP />} />
-              <Route path="analytics" element={<Analytics />} />
+              <Route path="olap" element={<OLAPAnalytics />} />
+              <Route path="analytics" element={<OLAPAnalytics />} />
             </Route>
             
             {/* Ruta por defecto */}

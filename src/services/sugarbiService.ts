@@ -57,6 +57,15 @@ export interface Estadisticas {
   año_fin: number;
 }
 
+export interface FilterOptions {
+  finca_id?: number;
+  variedad_id?: number;
+  zona_id?: string;
+  año?: number;
+  mes?: number;
+  top_fincas?: number;
+}
+
 export interface ChatResponse {
   success: boolean;
   data: {
@@ -123,6 +132,34 @@ class SugarBIService {
   // Obtener períodos de tiempo
   async getTiempo(): Promise<Tiempo[]> {
     const response = await api.get('/api/tiempo');
+    return response.data.data;
+  }
+
+  // APIs del Parser de Filtros Inteligente
+  async getFilterOptions(baseFilters?: FilterOptions): Promise<any> {
+    const params = new URLSearchParams();
+    if (baseFilters) {
+      Object.entries(baseFilters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          params.append(key, value.toString());
+        }
+      });
+    }
+    
+    const response = await api.get(`/api/filter-options?${params.toString()}`);
+    return response.data.data;
+  }
+
+  async getCosechaFiltered(filters: FilterOptions, limit: number = 100): Promise<any[]> {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, value.toString());
+      }
+    });
+    params.append('limit', limit.toString());
+    
+    const response = await api.get(`/api/cosecha-filtered?${params.toString()}`);
     return response.data.data;
   }
 

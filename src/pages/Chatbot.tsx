@@ -99,19 +99,19 @@ const Chatbot: React.FC = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6">
         {/* Chat principal */}
-        <div className="lg:col-span-3">
-          <div className="card h-[600px] flex flex-col">
+        <div className="xl:col-span-3">
+          <div className="card h-[500px] sm:h-[600px] flex flex-col">
             {/* Mensajes */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
               {messages.map((message) => (
                 <ChatMessageComponent key={message.id} message={message} />
               ))}
               
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-100 rounded-lg p-4 max-w-xs">
+                  <div className="bg-gray-100 rounded-lg p-3 sm:p-4 max-w-xs sm:max-w-sm">
                     <LoadingSpinner message="Procesando consulta..." size="sm" />
                   </div>
                 </div>
@@ -121,20 +121,20 @@ const Chatbot: React.FC = () => {
             </div>
 
             {/* Input */}
-            <div className="border-t border-gray-200 p-4">
-              <form onSubmit={handleSubmit} className="flex space-x-2">
+            <div className="border-t border-gray-200 p-3 sm:p-4">
+              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 sm:gap-2">
                 <input
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Escribe tu consulta aquí..."
-                  className="flex-1 input-field"
+                  className="flex-1 input-field text-sm sm:text-base"
                   disabled={isLoading}
                 />
                 <button
                   type="submit"
                   disabled={isLoading || !inputValue.trim()}
-                  className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base px-4 py-2 sm:py-2.5"
                 >
                   Enviar
                 </button>
@@ -144,17 +144,17 @@ const Chatbot: React.FC = () => {
         </div>
 
         {/* Panel lateral con ejemplos */}
-        <div className="lg:col-span-1">
+        <div className="xl:col-span-1 order-first xl:order-last">
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
               Ejemplos de Consultas
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:space-y-2">
               {examples.map((example, index) => (
                 <button
                   key={index}
                   onClick={() => handleExampleClick(example)}
-                  className="w-full text-left p-3 text-sm bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                  className="w-full text-left p-2 sm:p-3 text-xs sm:text-sm bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
                 >
                   {example}
                 </button>
@@ -163,11 +163,11 @@ const Chatbot: React.FC = () => {
           </div>
 
           {/* Información adicional */}
-          <div className="card mt-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="card mt-3 sm:mt-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
               Tipos de Consultas
             </h3>
-            <div className="space-y-2 text-sm text-gray-600">
+            <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-600">
               <div>
                 <strong>Rankings:</strong> "top 10 fincas por producción"
               </div>

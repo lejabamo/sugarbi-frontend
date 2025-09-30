@@ -12,13 +12,13 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`max-w-xs lg:max-w-2xl px-4 py-2 rounded-lg ${
+      <div className={`max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl px-3 sm:px-4 py-2 sm:py-3 rounded-lg ${
         isUser 
           ? 'bg-primary-600 text-white' 
           : 'bg-gray-100 text-gray-900'
       }`}>
         {/* Contenido del mensaje */}
-        <p className="text-sm">{message.content}</p>
+        <p className="text-xs sm:text-sm">{message.content}</p>
         
         {/* Error message */}
         {message.error && (
@@ -30,11 +30,27 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
         {/* Visualización */}
         {message.visualization && (
           <div className="mt-3">
-            <div className="bg-white p-3 rounded border">
+            <div className="bg-white p-2 sm:p-3 rounded border">
               <Chart
                 type={message.visualization.type || 'bar'}
                 data={message.visualization.data}
-                options={message.visualization.options}
+                options={{
+                  ...message.visualization.options,
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    ...message.visualization.options?.plugins,
+                    legend: {
+                      ...message.visualization.options?.plugins?.legend,
+                      labels: {
+                        ...message.visualization.options?.plugins?.legend?.labels,
+                        font: {
+                          size: 10
+                        }
+                      }
+                    }
+                  }
+                }}
               />
             </div>
           </div>
@@ -51,7 +67,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
             </button>
             {showSQL && (
               <div className="mt-2 p-2 bg-gray-800 text-green-400 rounded text-xs font-mono overflow-x-auto">
-                <pre>{message.sql}</pre>
+                <pre className="whitespace-pre-wrap break-words">{message.sql}</pre>
               </div>
             )}
           </div>
