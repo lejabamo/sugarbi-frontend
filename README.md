@@ -1,14 +1,23 @@
-# 🍃 SugarBI Frontend
+# SugarBI Frontend
 
-Frontend moderno para el sistema de Business Intelligence de cosecha de caña de azúcar.
+Sistema de Business Intelligence para análisis de datos de cosecha de caña de azúcar.
 
 ## 🚀 Características
 
+- **Dashboard Interactivo**: Visualizaciones en tiempo real con filtros inteligentes
+- **Chatbot Inteligente**: Consultas en lenguaje natural con LangChain
+- **Análisis OLAP**: Operaciones multidimensionales avanzadas
+- **Diseño Responsivo**: Optimizado para móviles, tablets y desktop
+- **Filtros Inteligentes**: Sistema anti-bobos con validación secuencial
+- **Exportación de Datos**: CSV, Excel, PDF
+
+## 🛠️ Tecnologías
+
 - **React 19** con TypeScript
-- **Vite** para desarrollo rápido
+- **Vite** para desarrollo y build
 - **Tailwind CSS** para estilos
 - **Chart.js** para visualizaciones
-- **Axios** para comunicación con API
+- **Axios** para API calls
 - **React Router** para navegación
 
 ## 📦 Instalación
@@ -17,63 +26,122 @@ Frontend moderno para el sistema de Business Intelligence de cosecha de caña de
 # Instalar dependencias
 npm install
 
-# Ejecutar en modo desarrollo
+# Desarrollo
 npm run dev
 
-# Construir para producción
+# Build para producción
+npm run build
+
+# Preview del build
+npm run preview
+```
+
+## 🔧 Variables de Entorno
+
+Crear archivo `.env`:
+
+```env
+VITE_API_BASE_URL=http://localhost:5001
+VITE_APP_NAME=SugarBI
+```
+
+## 📱 Responsive Design
+
+- **Mobile First**: Diseño optimizado para móviles
+- **Hamburger Menu**: Navegación deslizable en móvil
+- **Filter Sidebar**: Panel de filtros con overlay en móvil
+- **Adaptive Charts**: Gráficos que se ajustan al dispositivo
+
+## 🎯 Funcionalidades
+
+### Dashboard
+- Tarjetas de estadísticas en tiempo real
+- Gráficos interactivos (barras, líneas, doughnut)
+- Tabla de datos con exportación
+- Filtros inteligentes con validación
+
+### Chatbot
+- Consultas en lenguaje natural
+- Visualizaciones automáticas
+- Ejemplos de consultas predefinidas
+- Exportación de resultados
+
+### OLAP Analytics
+- Operaciones multidimensionales
+- Auto-ejecución con configuración por defecto
+- Visualizaciones dinámicas
+- Tabla de datos del cubo
+
+## 🚀 Deployment
+
+### Build para Producción
+```bash
 npm run build
 ```
 
-## 🌐 URLs
+### Servidor Web
+El build genera archivos estáticos en `dist/` que pueden servirse con:
+- Nginx
+- Apache
+- Netlify
+- Vercel
+- Cualquier servidor web estático
 
-- **Desarrollo:** http://localhost:5173
-- **Backend API:** http://localhost:5001
+### Docker (Opcional)
+```dockerfile
+FROM nginx:alpine
+COPY dist/ /usr/share/nginx/html/
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
 
-## 🔐 Usuarios de Prueba
-
-- **admin** / admin123 (Administrador)
-- **analista1** / [contraseña] (Analista)
-- **visualizador1** / [contraseña] (Visualizador)
-
-## 📁 Estructura del Proyecto
+## 📊 Estructura del Proyecto
 
 ```
 src/
-├── components/     # Componentes reutilizables
-├── pages/         # Páginas principales
-├── services/      # Servicios de API
-├── hooks/         # Custom hooks
-├── types/         # Tipos TypeScript
-└── utils/         # Utilidades
+├── components/          # Componentes reutilizables
+│   ├── Chart.tsx       # Gráficos
+│   ├── DataTable.tsx   # Tabla con exportación
+│   ├── SmartFilters.tsx # Filtros inteligentes
+│   └── ...
+├── hooks/              # Custom hooks
+│   ├── useSmartFilters.ts
+│   └── useReactiveFilters.ts
+├── pages/              # Páginas principales
+│   ├── Dashboard.tsx
+│   ├── Chatbot.tsx
+│   └── OLAPAnalytics.tsx
+├── services/           # Servicios API
+│   └── sugarbiService.ts
+└── styles/            # Estilos personalizados
 ```
 
-## 🎨 Páginas
+## 🔗 Integración Backend
 
-- **Dashboard** - Estadísticas generales
-- **Chatbot** - Consultas en lenguaje natural
-- **OLAP** - Análisis multidimensional
-- **Analytics** - Visualizaciones avanzadas
+Requiere el backend SugarBI corriendo en `http://localhost:5001` con:
+- API REST para datos
+- Endpoints de filtros inteligentes
+- Integración LangChain para chatbot
+- Motor OLAP para análisis multidimensional
 
-## 🔧 Tecnologías
+## 📝 Scripts Disponibles
 
-- React 19.1.1
-- TypeScript 5.8.3
-- Vite 7.1.2
-- Tailwind CSS 3.4.0
-- Chart.js 4.5.0
-- Axios 1.12.1
+- `npm run dev` - Servidor de desarrollo
+- `npm run build` - Build de producción
+- `npm run preview` - Preview del build
+- `npm run lint` - Linter de código
 
-## 📝 Notas
+## 🐛 Troubleshooting
 
-- Frontend separado del backend monolítico
-- Integración con API REST del backend SugarBI
-- Diseño responsivo tipo Google
-- Icono de caña de azúcar 🌾
+### Problemas Comunes
 
-## 🤝 Contribución
+1. **Error de CORS**: Verificar configuración del backend
+2. **Filtros no cargan**: Verificar conexión a API
+3. **Charts no renderizan**: Verificar datos y configuración Chart.js
+4. **Build falla**: Verificar versiones de Node.js y dependencias
 
-1. Fork del repositorio
-2. Crear rama de feature
-3. Commit cambios
-4. Push a la rama
-5. Crear Pull Request
+### Logs de Desarrollo
+```bash
+# Habilitar logs detallados
+VITE_DEBUG=true npm run dev
+```
