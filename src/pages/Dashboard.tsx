@@ -199,7 +199,7 @@ const Dashboard: React.FC = () => {
           height={350}
           data={{
             labels: filteredCosechas.slice(0, 15).map((c, index) => 
-              c.nombre_finca ? `${c.nombre_finca} (${c.año}/${c.mes})` : `Finca ${c.id_finca}`
+              c.finca_label || (c.nombre_finca ? `${c.nombre_finca} (${c.año}/${c.mes})` : `Finca ${c.id_finca}`)
             ),
             datasets: [{
               label: 'Toneladas',
