@@ -107,6 +107,10 @@ export const useSmartFilters = (initialFilters: FilterOptions = {}) => {
       if (Object.values(newOptions).every(arr => arr.length === 0)) {
         console.log('⚠️ No hay opciones disponibles, cargando datos básicos...');
         await loadBasicFilterOptions();
+      } else {
+        // Actualizar el estado con las nuevas opciones
+        setFilterOptions(newOptions);
+        console.log('✅ Opciones de filtros actualizadas:', newOptions);
       }
       
       return true;
