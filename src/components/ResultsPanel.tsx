@@ -30,9 +30,17 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({
   const tableColumns = useMemo(() => {
     const cols: string[] = [];
     
-    // Agregar columnas de dimensiones
+    // Agregar columnas de dimensiones con sus niveles
     selectedDimensions.forEach(dimension => {
-      cols.push(dimension);
+      // Mapear nombres de dimensiones a nombres de columna en la respuesta
+      const dimensionMapping: Record<string, string> = {
+        'tiempo': 'tiempo_year',
+        'geografia': 'geografia_zone', 
+        'producto': 'producto_variedad'
+      };
+      
+      const columnName = dimensionMapping[dimension] || dimension;
+      cols.push(columnName);
     });
     
     // Agregar columnas de métricas con funciones
@@ -198,17 +206,26 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({
           <thead className="bg-gray-50">
             <tr>
               {tableColumns.map((col, index) => {
-                const headerName = selectedDimensions.includes(col)
-                  ? col.charAt(0).toUpperCase() + col.slice(1)
-                  : (() => {
-                      const parts = col.split('_');
-                      if (parts.length >= 2) {
-                        const metric = parts[0];
-                        const func = parts[1];
-                        return `${metric} (${func})`;
-                      }
-                      return col;
-                    })();
+                let headerName = col;
+                
+                // Mapear nombres de columnas a nombres legibles
+                if (col === 'tiempo_year') {
+                  headerName = 'TIEMPO';
+                } else if (col === 'geografia_zone') {
+                  headerName = 'GEOGRAFÍA';
+                } else if (col === 'producto_variedad') {
+                  headerName = 'PRODUCTO';
+                } else if (col.includes('_')) {
+                  // Para métricas con funciones
+                  const parts = col.split('_');
+                  if (parts.length >= 2) {
+                    const metric = parts[0].toUpperCase();
+                    const func = parts[1].toUpperCase();
+                    headerName = `${metric} (${func})`;
+                  }
+                } else {
+                  headerName = col.toUpperCase();
+                }
                 
                 return (
                   <th key={index} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
