@@ -5,7 +5,7 @@ import type { FilterOptions } from '../services/sugarbiService';
 interface SmartFilterOptions {
   fincas: { finca_id: number; nombre_finca: string; count: number }[];
   variedades: { variedad_id: number; nombre_variedad: string; count: number }[];
-  zonas: { codigo_zona: string; nombre_zona: string; count: number }[];
+  zonas: { zona_id: number; codigo_zona?: number; nombre_zona: string; count: number }[];
   años: { año: number; count: number }[];
   meses: { mes: number; nombre_mes: string; count: number }[];
 }
@@ -50,6 +50,13 @@ const SmartFilters: React.FC<SmartFiltersProps> = ({ onFiltersChange }) => {
     const state = getFilterState(key);
     const options = filterOptions[key as keyof SmartFilterOptions] || [];
     
+    // Debug para zona y variedad
+    if (key === 'zona_id') {
+      console.log('🌾 Estado de zona:', { state, optionsLength: options.length, isLoading });
+    }
+    if (key === 'variedad_id') {
+      console.log('🌾 Estado de variedad:', { state, optionsLength: options.length, isLoading });
+    }
     
     switch (key) {
       case 'año':
@@ -182,18 +189,26 @@ const SmartFilters: React.FC<SmartFiltersProps> = ({ onFiltersChange }) => {
           </label>
           <select
             value={filters.zona_id || ''}
-            onChange={(e) => handleFilterChange('zona_id', e.target.value || undefined)}
+            onChange={(e) => {
+              console.log('🌾 Zona seleccionada:', e.target.value);
+              handleFilterChange('zona_id', e.target.value ? parseInt(e.target.value) : undefined);
+            }}
+            onFocus={() => console.log('🌾 Zona dropdown enfocado')}
+            onBlur={() => console.log('🌾 Zona dropdown perdió foco')}
             className={`form-select w-full text-sm py-2 ${getFilterState('zona_id') === 'blocked' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-            disabled={isLoading || getFilterState('zona_id') === 'blocked'}
+            disabled={getFilterState('zona_id') === 'blocked'}
           >
             <option value="">
               {getStateMessage('zona_id')} ({filterOptions.zonas.length})
             </option>
-            {filterOptions.zonas.map(zona => (
-              <option key={zona.codigo_zona} value={zona.codigo_zona}>
-                {zona.nombre_zona} {zona.count > 0 && `(${zona.count})`}
-              </option>
-            ))}
+            {filterOptions.zonas.map(zona => {
+              console.log('🌾 Zona disponible:', zona);
+              return (
+                <option key={zona.zona_id ?? zona.codigo_zona} value={zona.zona_id ?? zona.codigo_zona}>
+                  {zona.nombre_zona} {zona.count > 0 && `(${zona.count})`}
+                </option>
+              );
+            })}
           </select>
         </div>
 
@@ -204,9 +219,14 @@ const SmartFilters: React.FC<SmartFiltersProps> = ({ onFiltersChange }) => {
           </label>
           <select
             value={filters.top_fincas || ''}
-            onChange={(e) => handleFilterChange('top_fincas', e.target.value ? parseInt(e.target.value) : undefined)}
+            onChange={(e) => {
+              console.log('🌾 Top Fincas seleccionado:', e.target.value);
+              handleFilterChange('top_fincas', e.target.value ? parseInt(e.target.value) : undefined);
+            }}
+            onFocus={() => console.log('🌾 Top Fincas dropdown enfocado')}
+            onBlur={() => console.log('🌾 Top Fincas dropdown perdió foco')}
             className={`form-select w-full text-sm py-2 ${getFilterState('top_fincas') === 'blocked' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-            disabled={isLoading || getFilterState('top_fincas') === 'blocked'}
+            disabled={getFilterState('top_fincas') === 'blocked'}
           >
             <option value="">Todas las fincas</option>
             <option value="5">Top 5 fincas</option>
@@ -224,18 +244,26 @@ const SmartFilters: React.FC<SmartFiltersProps> = ({ onFiltersChange }) => {
           </label>
           <select
             value={filters.variedad_id || ''}
-            onChange={(e) => handleFilterChange('variedad_id', e.target.value ? parseInt(e.target.value) : undefined)}
+            onChange={(e) => {
+              console.log('🌾 Variedad seleccionada:', e.target.value);
+              handleFilterChange('variedad_id', e.target.value ? parseInt(e.target.value) : undefined);
+            }}
+            onFocus={() => console.log('🌾 Variedad dropdown enfocado')}
+            onBlur={() => console.log('🌾 Variedad dropdown perdió foco')}
             className={`form-select w-full text-sm py-2 ${getFilterState('variedad_id') === 'blocked' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-            disabled={isLoading || getFilterState('variedad_id') === 'blocked'}
+            disabled={getFilterState('variedad_id') === 'blocked'}
           >
             <option value="">
               {getStateMessage('variedad_id')} ({filterOptions.variedades.length})
             </option>
-            {filterOptions.variedades.map(variedad => (
-              <option key={variedad.variedad_id} value={variedad.variedad_id}>
-                {variedad.nombre_variedad} {variedad.count > 0 && `(${variedad.count})`}
-              </option>
-            ))}
+            {filterOptions.variedades.map(variedad => {
+              console.log('🌾 Variedad disponible:', variedad);
+              return (
+                <option key={variedad.variedad_id} value={variedad.variedad_id}>
+                  {variedad.nombre_variedad} {variedad.count > 0 && `(${variedad.count})`}
+                </option>
+              );
+            })}
           </select>
         </div>
       </div>
@@ -259,7 +287,7 @@ const SmartFilters: React.FC<SmartFiltersProps> = ({ onFiltersChange }) => {
                   label = `Variedad: ${variedad?.nombre_variedad || value}`;
                   break;
                 case 'zona_id':
-                  const zona = filterOptions.zonas.find(z => z.codigo_zona === value);
+                  const zona = filterOptions.zonas.find(z => (z.zona_id ?? z.codigo_zona) === value);
                   label = `Zona: ${zona?.nombre_zona || value}`;
                   break;
                 case 'año':

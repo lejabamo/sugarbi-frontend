@@ -66,6 +66,29 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Calcular estadísticas de los datos filtrados
+  const getFilteredStats = () => {
+    if (filteredCosechas.length === 0) {
+      return {
+        total_fincas: 0,
+        total_variedades: 0,
+        total_cosechas: 0,
+        total_toneladas: 0
+      };
+    }
+
+    const fincasUnicas = new Set(filteredCosechas.map(c => c.id_finca)).size;
+    const variedadesUnicas = new Set(filteredCosechas.map(c => c.codigo_variedad)).size;
+    const totalToneladas = filteredCosechas.reduce((sum, c) => sum + (c.toneladas_cana_molida || 0), 0);
+
+    return {
+      total_fincas: fincasUnicas,
+      total_variedades: variedadesUnicas,
+      total_cosechas: filteredCosechas.length,
+      total_toneladas: totalToneladas
+    };
+  };
+
   const handleFiltersChange = (newFilters: FilterOptions) => {
     setFilters(newFilters);
   };
@@ -120,38 +143,47 @@ const Dashboard: React.FC = () => {
       {/* Estadísticas principales */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          <StatsCard
-            title="Total Fincas"
-            value={stats.total_dimfinca}
-            icon="🏭"
-            color="primary"
-            subtitle="Fincas registradas"
-            format="number"
-          />
-          <StatsCard
-            title="Total Variedades"
-            value={stats.total_dimvariedad}
-            icon="🌱"
-            color="secondary"
-            subtitle="Tipos de caña"
-            format="number"
-          />
-          <StatsCard
-            title="Total Cosechas"
-            value={stats.total_cosechas}
-            icon="📊"
-            color="info"
-            subtitle="Registros de producción"
-            format="number"
-          />
-          <StatsCard
-            title="Total Toneladas"
-            value={stats.total_toneladas || 0}
-            icon="⚖️"
-            color="accent"
-            subtitle="Producción total"
-            format="number"
-          />
+          {(() => {
+            const filteredStats = getFilteredStats();
+            const hasFilters = Object.keys(filters).length > 0;
+            
+            return (
+              <>
+                <StatsCard
+                  title="Total Fincas"
+                  value={hasFilters ? filteredStats.total_fincas : stats.total_dimfinca}
+                  icon="🏭"
+                  color="primary"
+                  subtitle={hasFilters ? "Fincas en filtro" : "Fincas registradas"}
+                  format="number"
+                />
+                <StatsCard
+                  title="Total Variedades"
+                  value={hasFilters ? filteredStats.total_variedades : stats.total_dimvariedad}
+                  icon="🌱"
+                  color="secondary"
+                  subtitle={hasFilters ? "Variedades en filtro" : "Tipos de caña"}
+                  format="number"
+                />
+                <StatsCard
+                  title="Total Cosechas"
+                  value={hasFilters ? filteredStats.total_cosechas : stats.total_cosechas}
+                  icon="📊"
+                  color="info"
+                  subtitle={hasFilters ? "Registros filtrados" : "Registros de producción"}
+                  format="number"
+                />
+                <StatsCard
+                  title="Total Toneladas"
+                  value={hasFilters ? filteredStats.total_toneladas : (stats.total_toneladas || 0)}
+                  icon="⚖️"
+                  color="accent"
+                  subtitle={hasFilters ? "Producción filtrada" : "Producción total"}
+                  format="number"
+                />
+              </>
+            );
+          })()}
         </div>
       )}
 

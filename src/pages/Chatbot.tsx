@@ -4,6 +4,7 @@ import type { ChatResponse } from '../services/sugarbiService';
 import type { ChatMessage } from '../types';
 import ChatMessageComponent from '../components/ChatMessage';
 import LoadingSpinner from '../components/LoadingSpinner';
+import ChatAvatar from '../components/ChatAvatar';
 
 const Chatbot: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -57,12 +58,38 @@ const Chatbot: React.FC = () => {
 
     try {
       const response: ChatResponse = await sugarbiService.processChatQueryLangChain(inputValue);
-      
+
+      // Construir mensaje natural determinístico en el cliente si es posible
+      let clientSummary: string | undefined;
+      try {
+        if (response.success) {
+          const filters: any = (response as any).data?.intent?.filters || {};
+          const year = filters?.['año'];
+          const month = filters?.['mes'];
+          const metric = (response as any).data?.intent?.metric || '';
+          const viz = (response as any).data?.visualization;
+          const ds = viz?.data?.datasets?.[0];
+          const firstValue = Array.isArray(ds?.data) ? ds.data[0] : undefined;
+          // Frases específicas para promedio/total
+          const isAverage = /promedio|avg|media/i.test(metric) || /promedio|avg|media/i.test(inputValue);
+          const isTotal = /total|suma|sumatoria/i.test(metric) || /total|suma|sumatoria/i.test(inputValue);
+          const metricLabel = /toneladas/i.test(metric) ? 'toneladas' : metric || 'valor';
+          const period = year ? (month ? ` en ${month}/${year}` : ` en ${year}`) : '';
+          if (typeof firstValue === 'number') {
+            if (isAverage) {
+              clientSummary = `El promedio de ${metricLabel}${period} fue de ${firstValue.toLocaleString('es-CO')} ${metricLabel}.`;
+            } else if (isTotal) {
+              clientSummary = `El total de ${metricLabel}${period} fue de ${firstValue.toLocaleString('es-CO')} ${metricLabel}.`;
+            }
+          }
+        }
+      } catch {}
+
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
         content: response.success 
-          ? (response.data.natural_response || `Encontré ${response.data.record_count} registros para tu consulta.`)
+          ? (response.data.natural_response || clientSummary || `Encontré ${response.data.record_count} registros para tu consulta.`)
           : response.error || 'Error al procesar la consulta',
         timestamp: new Date(),
         visualization: response.success ? response.data.visualization : undefined,
@@ -92,11 +119,16 @@ const Chatbot: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Chatbot Inteligente</h1>
-        <p className="mt-2 text-gray-600">
-          Haz consultas en lenguaje natural sobre los datos de cosecha
-        </p>
+      <div className="flex items-center gap-4">
+        <div className="flex-shrink-0">
+          <ChatAvatar size="lg" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Chatbot Inteligente</h1>
+          <p className="mt-2 text-gray-600">
+            Haz consultas en lenguaje natural sobre los datos de cosecha
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6">
@@ -110,7 +142,10 @@ const Chatbot: React.FC = () => {
               ))}
               
               {isLoading && (
-                <div className="flex justify-start">
+                <div className="flex justify-start items-start gap-2">
+                  <div className="flex-shrink-0 mt-1">
+                    <ChatAvatar size="sm" isTyping={true} />
+                  </div>
                   <div className="bg-gray-100 rounded-lg p-3 sm:p-4 max-w-xs sm:max-w-sm">
                     <LoadingSpinner message="Procesando consulta..." size="sm" />
                   </div>

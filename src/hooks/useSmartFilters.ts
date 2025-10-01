@@ -64,13 +64,18 @@ export const useSmartFilters = (initialFilters: FilterOptions = {}) => {
   // Función para cargar opciones de filtros de forma inteligente
   const loadFilterOptions = useCallback(async (currentFilters: FilterOptions = {}) => {
     try {
-      setIsLoading(true);
       console.log('🧠 Cargando filtros inteligentes para:', currentFilters);
+      // Solo mostrar loading si no hay filtros previos (carga inicial)
+      if (Object.keys(filters).length === 0) {
+        setIsLoading(true);
+      }
       
       // Usar API de intersecciones para filtros reactivos
       const filterOptions = await sugarbiService.getFilterOptions(currentFilters);
       console.log('✅ Filtros inteligentes recibidos:', filterOptions);
       console.log('🔍 Estructura de meses recibida:', filterOptions.meses);
+      console.log('🔍 Estructura de zonas recibida:', filterOptions.zonas);
+      console.log('🔍 Estructura de variedades recibida:', filterOptions.variedades);
       
       const newOptions = {
         fincas: filterOptions.fincas || [],
@@ -193,10 +198,8 @@ export const useSmartFilters = (initialFilters: FilterOptions = {}) => {
       console.log('📊 Nuevos filtros inteligentes:', newFilters);
       
       // Cargar opciones inmediatamente después de actualizar filtros
-      setTimeout(() => {
-        console.log('🔄 Cargando opciones después de actualizar filtro...');
-        loadFilterOptions(newFilters);
-      }, 100);
+      console.log('🔄 Cargando opciones después de actualizar filtro...');
+      loadFilterOptions(newFilters);
       
       return newFilters;
     });
@@ -320,10 +323,28 @@ export const useSmartFilters = (initialFilters: FilterOptions = {}) => {
     return () => clearTimeout(timeoutId);
   }, [filters, validateAndRestoreFilters]);
 
+  // Helper para obtener el arreglo de opciones correspondiente a una clave de filtro
+  const getOptionsByFilterKey = useCallback((filterKey: keyof FilterOptions) => {
+    switch (filterKey) {
+      case 'año':
+        return filterOptions.años || [];
+      case 'mes':
+        return filterOptions.meses || [];
+      case 'zona_id':
+        return filterOptions.zonas || [];
+      case 'variedad_id':
+        return filterOptions.variedades || [];
+      case 'finca_id':
+        return filterOptions.fincas || [];
+      default:
+        return [] as any[];
+    }
+  }, [filterOptions]);
+
   // Función para obtener el estado de un filtro
   const getFilterState = useCallback((filterKey: keyof FilterOptions) => {
     const hasValue = filters[filterKey] !== undefined && filters[filterKey] !== null;
-    const options = filterOptions[filterKey as keyof SmartFilterOptions] || [];
+    const options = getOptionsByFilterKey(filterKey);
     const hasOptions = options.length > 0;
     
     // Debug específico para mes (solo cuando hay problema)
@@ -360,7 +381,7 @@ export const useSmartFilters = (initialFilters: FilterOptions = {}) => {
       default:
         return hasOptions ? (hasValue ? 'selected' : 'available') : 'blocked';
     }
-  }, [filters, filterOptions]);
+  }, [filters, getOptionsByFilterKey]);
 
   // Función para verificar si se puede continuar con más filtros
   const canContinueFiltering = useCallback((currentFilters: FilterOptions) => {
