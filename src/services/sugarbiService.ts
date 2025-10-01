@@ -159,8 +159,10 @@ class SugarBIService {
     });
     params.append('limit', limit.toString());
     
+    console.log('🔍 Enviando filtros a API:', filters);
     const response = await api.get(`/api/cosecha-filtered?${params.toString()}`);
-    return response.data.data;
+    console.log('📊 Respuesta de API:', response.data);
+    return response.data.data || [];
   }
 
   // Obtener datos de cosecha con filtros

@@ -51,24 +51,35 @@ const Dashboard: React.FC = () => {
       
       // Si no hay filtros, usar los datos originales
       if (Object.keys(filters).length === 0) {
+        console.log('📊 Sin filtros - usando datos originales:', topCosechas.length, 'registros');
         setFilteredCosechas(topCosechas);
         return;
       }
 
       // Cargar datos filtrados usando la API de intersecciones
+      console.log('🔍 Cargando datos filtrados con filtros:', filters);
       const filteredData = await sugarbiService.getCosechaFiltered(filters, 1000);
       console.log('✅ Datos filtrados recibidos:', filteredData.length, 'registros');
-      setFilteredCosechas(filteredData);
+      
+      if (filteredData.length === 0) {
+        console.log('⚠️ No se encontraron datos con los filtros aplicados');
+        // Si no hay datos filtrados, mostrar mensaje pero mantener los datos originales
+        setFilteredCosechas([]);
+      } else {
+        setFilteredCosechas(filteredData);
+      }
       
     } catch (err: any) {
       console.error('❌ Error loading filtered data:', err);
-      setFilteredCosechas([]);
+      // En caso de error, mantener los datos originales
+      setFilteredCosechas(topCosechas);
     }
   };
 
   // Calcular estadísticas de los datos filtrados
   const getFilteredStats = () => {
-    if (filteredCosechas.length === 0) {
+    // Si hay filtros aplicados pero no hay datos filtrados, mostrar 0
+    if (Object.keys(filters).length > 0 && filteredCosechas.length === 0) {
       return {
         total_fincas: 0,
         total_variedades: 0,
@@ -77,6 +88,12 @@ const Dashboard: React.FC = () => {
       };
     }
 
+    // Si no hay filtros aplicados, usar las estadísticas globales
+    if (Object.keys(filters).length === 0) {
+      return stats;
+    }
+
+    // Si hay filtros y datos filtrados, calcular estadísticas de los datos filtrados
     const fincasUnicas = new Set(filteredCosechas.map(c => c.id_finca)).size;
     const variedadesUnicas = new Set(filteredCosechas.map(c => c.codigo_variedad)).size;
     const totalToneladas = filteredCosechas.reduce((sum, c) => sum + (c.toneladas_cana_molida || 0), 0);
@@ -126,19 +143,40 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Resumen de datos filtrados */}
-        {Object.keys(filters).length > 0 && (
-          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center">
-              <i className="fas fa-info-circle text-blue-600 mr-2"></i>
-              <span className="text-blue-800 font-medium">
-                Mostrando {filteredCosechas.length} registros filtrados
-              </span>
-              <span className="text-blue-600 ml-2">
-                (de {stats?.total_hechos_cosecha || 0} registros totales)
-              </span>
-            </div>
-          </div>
-        )}
+        {(() => {
+          const hasFilters = Object.keys(filters).length > 0;
+          const filteredStats = getFilteredStats();
+          
+          if (hasFilters) {
+            return (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center">
+                  <i className="fas fa-info-circle text-blue-600 mr-2"></i>
+                  <span className="text-blue-800 font-medium">
+                    Mostrando {filteredCosechas.length} registros filtrados
+                  </span>
+                  <span className="text-blue-600 ml-2">
+                    (de {stats?.total_hechos_cosecha || 0} registros totales)
+                  </span>
+                </div>
+              </div>
+            );
+          } else {
+            return (
+              <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center">
+                  <i className="fas fa-chart-bar text-green-600 mr-2"></i>
+                  <span className="text-green-800 font-medium">
+                    Mostrando {topCosechas.length} registros de producción
+                  </span>
+                  <span className="text-green-600 ml-2">
+                    (de {stats?.total_hechos_cosecha || 0} registros totales)
+                  </span>
+                </div>
+              </div>
+            );
+          }
+        })()}
 
       {/* Estadísticas principales */}
       {stats && (
@@ -191,21 +229,28 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top 5 Cosechas por Producción */}
         <div className="card">
-          {filteredCosechas.length > 0 ? (
-        <Chart
-          type="bar"
-          title={Object.keys(filters).length > 0 ? 'Cosechas Filtradas' : 'Top 15 Cosechas por Producción'}
-          subtitle={`${filteredCosechas.length} registros encontrados`}
-          height={350}
-          data={{
-            labels: filteredCosechas.slice(0, 15).map((c, index) => 
-              c.finca_label || (c.nombre_finca ? `${c.nombre_finca} (${c.año}/${c.mes})` : `Finca ${c.id_finca}`)
-            ),
-            datasets: [{
-              label: 'Toneladas',
-              data: filteredCosechas.slice(0, 15).map(c => c.toneladas_cana_molida),
-            }]
-          }}
+          {(() => {
+            const hasFilters = Object.keys(filters).length > 0;
+            const dataToShow = hasFilters ? filteredCosechas : topCosechas;
+            const title = hasFilters ? 'Cosechas Filtradas' : 'Top 15 Cosechas por Producción';
+            const subtitle = hasFilters ? `${filteredCosechas.length} registros encontrados` : `${topCosechas.length} registros de producción`;
+            
+            if (dataToShow.length > 0) {
+              return (
+                <Chart
+                  type="bar"
+                  title={title}
+                  subtitle={subtitle}
+                  height={350}
+                  data={{
+                    labels: dataToShow.slice(0, 15).map((c, index) => 
+                      c.finca_label || (c.nombre_finca ? `${c.nombre_finca} (${c.año}/${c.mes})` : `Finca ${c.id_finca}`)
+                    ),
+                    datasets: [{
+                      label: 'Toneladas',
+                      data: dataToShow.slice(0, 15).map(c => c.toneladas_cana_molida),
+                    }]
+                  }}
               options={{
                 plugins: {
                   legend: {
@@ -235,17 +280,23 @@ const Dashboard: React.FC = () => {
                     }
                   }
                 }
-              }}
-            />
-          ) : (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <div className="text-4xl text-gray-300 mb-4">📊</div>
-                <p className="text-gray-500 text-lg">No hay datos disponibles</p>
-                <p className="text-gray-400 text-sm mt-1">Ajusta los filtros para ver resultados</p>
-              </div>
-            </div>
-          )}
+                  }}
+                />
+              );
+            } else {
+              return (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <div className="text-4xl text-gray-300 mb-4">📊</div>
+                    <p className="text-gray-500 text-lg">No hay datos disponibles</p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      {hasFilters ? 'Ajusta los filtros para ver resultados' : 'Cargando datos...'}
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+          })()}
         </div>
 
         {/* Promedios de Calidad */}
