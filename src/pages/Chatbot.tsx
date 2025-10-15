@@ -56,18 +56,19 @@ const Chatbot: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response: ChatResponse = await sugarbiService.processChatQueryLangChain(inputValue);
+      const response: ChatResponse = await sugarbiService.processChatQuery(inputValue);
       
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
         content: response.success 
-          ? (response.data.natural_response || `Encontré ${response.data.record_count} registros para tu consulta.`)
+          ? (response.natural_response || `Encontré ${response.record_count} registros para tu consulta.`)
           : response.error || 'Error al procesar la consulta',
         timestamp: new Date(),
-        visualization: response.success ? response.data.visualization : undefined,
-        sql: response.success ? response.data.sql : undefined,
-        error: response.success ? undefined : response.error
+        visualization: response.success ? response.visualization : undefined,
+        sql: response.success ? response.sql : undefined,
+        error: response.success ? undefined : response.error,
+        raw_data: response.success ? response.raw_data : undefined
       };
 
       setMessages(prev => [...prev, botMessage]);

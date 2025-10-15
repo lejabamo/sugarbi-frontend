@@ -4,6 +4,14 @@ import type { Estadisticas } from '../services/sugarbiService';
 import StatsCard from '../components/StatsCard';
 import Chart from '../components/Chart';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { 
+  FarmIcon, 
+  ProductionIcon, 
+  QualityIcon, 
+  VarietyIcon, 
+  BarChartIcon
+} from '../components/Icons';
+import { colors } from '../styles/colors';
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<Estadisticas | null>(null);
@@ -31,10 +39,10 @@ const Dashboard: React.FC = () => {
       const promedioSacarosa = topCosechasData.reduce((sum, c) => sum + (c.sacarosa || 0), 0) / topCosechasData.length;
       
       setStats({
-        total_dimfinca: new Set(topCosechasData.map(c => c.id_finca)).size,
-        total_dimvariedad: new Set(topCosechasData.map(c => c.codigo_variedad)).size,
-        total_dimzona: new Set(topCosechasData.map(c => c.codigo_zona)).size,
-        total_dimtiempo: new Set(topCosechasData.map(c => c.codigo_tiempo)).size,
+        total_dimfinca: new Set(topCosechasData.map(c => c.nombre_finca)).size,
+        total_dimvariedad: new Set(topCosechasData.map(c => c.nombre_variedad)).size,
+        total_dimzona: new Set(topCosechasData.map(c => c.nombre_zona)).size,
+        total_dimtiempo: new Set(topCosechasData.map(c => `${c.año}-${c.mes}`)).size,
         total_hechos_cosecha: topCosechasData.length,
         total_cosechas: topCosechasData.length,
         total_toneladas: totalToneladas,
@@ -75,11 +83,16 @@ const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">
-          Resumen general del sistema SugarBI
-        </p>
+      <div className="flex items-center mb-6">
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl mr-4" style={{ backgroundColor: colors.sequential.green[50] }}>
+            <BarChartIcon className="w-6 h-6" style={{ color: colors.qualitative.primary }} />
+          </div>
+        <div>
+          <h1 className="text-3xl font-bold" style={{ color: colors.qualitative.primary }}>Dashboard</h1>
+          <p className="mt-2 text-gray-600">
+            Resumen general del sistema SugarBI
+          </p>
+        </div>
       </div>
 
       {/* Estadísticas principales */}
@@ -88,25 +101,25 @@ const Dashboard: React.FC = () => {
           <StatsCard
             title="Total Fincas"
             value={stats.total_dimfinca}
-            icon="🏭"
+            icon={<FarmIcon className="w-6 h-6" />}
             color="blue"
           />
           <StatsCard
             title="Total Variedades"
             value={stats.total_dimvariedad}
-            icon="🌱"
+            icon={<VarietyIcon className="w-6 h-6" />}
             color="green"
           />
           <StatsCard
             title="Total Cosechas"
             value={stats.total_cosechas}
-            icon="📊"
+            icon={<ProductionIcon className="w-6 h-6" />}
             color="purple"
           />
           <StatsCard
             title="Total Toneladas"
             value={stats.total_toneladas?.toLocaleString() || '0'}
-            icon="⚖️"
+            icon={<QualityIcon className="w-6 h-6" />}
             color="orange"
           />
         </div>
@@ -116,19 +129,31 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top 5 Cosechas por Producción */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Top 5 Cosechas por Producción
-          </h3>
+          <div className="flex items-center mb-4">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg mr-3" style={{ backgroundColor: colors.sequential.blue[50] }}>
+              <BarChartIcon className="w-4 h-4" style={{ color: colors.qualitative.primary }} />
+            </div>
+            <h3 className="text-lg font-semibold" style={{ color: colors.qualitative.primary }}>
+              Top 5 Cosechas por Producción
+            </h3>
+          </div>
           {topCosechas.length > 0 ? (
             <Chart
               type="bar"
               data={{
-                labels: topCosechas.map((c, index) => `Finca ${c.id_finca}`),
+                labels: topCosechas.map((c) => c.nombre_finca),
                 datasets: [{
                   label: 'Toneladas',
                   data: topCosechas.map(c => c.toneladas_cana_molida),
-                  backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                  borderColor: 'rgba(59, 130, 246, 1)',
+                  backgroundColor: [
+                    '#3B82F6', // Azul principal
+                    '#F59E0B', // Amarillo dorado
+                    '#8B5CF6', // Púrpura
+                    '#10B981', // Verde
+                    '#EF4444', // Rojo
+                    '#6B7280'  // Gris
+                  ],
+                  borderColor: '#FFFFFF',
                   borderWidth: 1
                 }]
               }}
@@ -164,9 +189,14 @@ const Dashboard: React.FC = () => {
         {/* Promedios de Calidad */}
         {stats && (
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Promedios de Calidad
-            </h3>
+            <div className="flex items-center mb-4">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg mr-3" style={{ backgroundColor: colors.sequential.green[50] }}>
+                <QualityIcon className="w-4 h-4" style={{ color: colors.qualitative.success }} />
+              </div>
+              <h3 className="text-lg font-semibold" style={{ color: colors.qualitative.success }}>
+                Promedios de Calidad
+              </h3>
+            </div>
             <Chart
               type="doughnut"
               data={{
@@ -178,15 +208,14 @@ const Dashboard: React.FC = () => {
                     stats.promedio_sacarosa || 0
                   ],
                   backgroundColor: [
-                    'rgba(34, 197, 94, 0.5)',
-                    'rgba(251, 191, 36, 0.5)',
-                    'rgba(168, 85, 247, 0.5)'
+                    '#3B82F6', // Azul principal
+                    '#F59E0B', // Amarillo dorado
+                    '#8B5CF6', // Púrpura
+                    '#10B981', // Verde
+                    '#EF4444', // Rojo
+                    '#6B7280'  // Gris
                   ],
-                  borderColor: [
-                    'rgba(34, 197, 94, 1)',
-                    'rgba(251, 191, 36, 1)',
-                    'rgba(168, 85, 247, 1)'
-                  ],
+                  borderColor: '#FFFFFF',
                   borderWidth: 1
                 }]
               }}

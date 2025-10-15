@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import api from '../services/api';
+import { authService } from '../services/authService';
 import type { AuthState } from '../types';
 
 interface AuthContextType extends AuthState {
@@ -41,11 +41,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setAuthState(prev => ({ ...prev, isLoading: true }));
       
       // Intentar obtener información del usuario autenticado
-      const response = await api.get('/auth/api/user/me');
+      const response = await authService.getCurrentUser();
       
-      if (response.data.success) {
+      if (response.success && response.user) {
         setAuthState({
-          user: response.data.data,
+          user: response.user,
           isAuthenticated: true,
           isLoading: false,
           error: null,
@@ -73,14 +73,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      const response = await api.post('/auth/api/login', {
+      const response = await authService.login({
         username,
         password,
+        remember_me: true
       });
       
-      if (response.data.success) {
+      if (response.success && response.user) {
         setAuthState({
-          user: response.data.data.user,
+          user: response.user,
           isAuthenticated: true,
           isLoading: false,
           error: null,
@@ -90,7 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setAuthState(prev => ({
           ...prev,
           isLoading: false,
-          error: response.data.error || 'Error de autenticación',
+          error: response.error || 'Error de autenticación',
         }));
         return false;
       }
@@ -107,7 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await api.post('/auth/api/logout');
+      await authService.logout();
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     } finally {

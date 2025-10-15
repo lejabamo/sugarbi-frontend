@@ -1,11 +1,16 @@
 import React from 'react';
+import { colors } from '../styles/colors';
 
 interface StatsCardProps {
   title: string;
   value: string | number;
-  icon: string;
+  icon: React.ReactNode;
   color: 'blue' | 'green' | 'purple' | 'orange' | 'red';
   subtitle?: string;
+  trend?: {
+    value: number;
+    isPositive: boolean;
+  };
 }
 
 const StatsCard: React.FC<StatsCardProps> = ({ 
@@ -13,29 +18,82 @@ const StatsCard: React.FC<StatsCardProps> = ({
   value, 
   icon, 
   color, 
-  subtitle 
+  subtitle,
+  trend
 }) => {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    purple: 'bg-purple-50 text-purple-600',
-    orange: 'bg-orange-50 text-orange-600',
-    red: 'bg-red-50 text-red-600',
+  const colorConfig = {
+    blue: {
+      bg: colors.qualitative.primary,
+      bgLight: colors.sequential.blue[50],
+      text: colors.sequential.blue[700],
+      icon: colors.sequential.blue[600],
+    },
+    green: {
+      bg: colors.qualitative.success,
+      bgLight: colors.sequential.green[50],
+      text: colors.sequential.green[700],
+      icon: colors.sequential.green[600],
+    },
+    purple: {
+      bg: colors.qualitative.purple,
+      bgLight: colors.sequential.purple[50],
+      text: colors.sequential.purple[700],
+      icon: colors.sequential.purple[600],
+    },
+    orange: {
+      bg: colors.qualitative.warning,
+      bgLight: colors.sequential.orange[50],
+      text: colors.sequential.orange[700],
+      icon: colors.sequential.orange[600],
+    },
+    red: {
+      bg: colors.qualitative.danger,
+      bgLight: '#fef2f2',
+      text: '#991b1b',
+      icon: colors.qualitative.danger,
+    },
   };
 
+  const config = colorConfig[color];
+
   return (
-    <div className="card">
-      <div className="flex items-center">
-        <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
-          <span className="text-2xl">{icon}</span>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <div 
+            className="p-3 rounded-xl"
+            style={{ backgroundColor: config.bgLight }}
+          >
+            <div style={{ color: config.icon }}>
+              {icon}
+            </div>
+          </div>
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-600">{title}</p>
+            <p 
+              className="text-2xl font-bold"
+              style={{ color: config.text }}
+            >
+              {value}
+            </p>
+            {subtitle && (
+              <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
+            )}
+          </div>
         </div>
-        <div className="ml-4">
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-semibold text-gray-900">{value}</p>
-          {subtitle && (
-            <p className="text-xs text-gray-500">{subtitle}</p>
-          )}
-        </div>
+        {trend && (
+          <div className="text-right">
+            <div className={`flex items-center text-sm font-medium ${
+              trend.isPositive ? 'text-green-600' : 'text-red-600'
+            }`}>
+              <span className="mr-1">
+                {trend.isPositive ? '↗' : '↘'}
+              </span>
+              {Math.abs(trend.value)}%
+            </div>
+            <p className="text-xs text-gray-500">vs anterior</p>
+          </div>
+        )}
       </div>
     </div>
   );

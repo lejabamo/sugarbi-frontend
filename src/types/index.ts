@@ -4,8 +4,10 @@ export interface User {
   id: number;
   username: string;
   email: string;
+  first_name: string;
+  last_name: string;
   role: string;
-  is_authenticated: boolean;
+  is_active: boolean;
 }
 
 export interface AuthState {
@@ -55,6 +57,7 @@ export interface ChatMessage {
   visualization?: any;
   sql?: string;
   error?: string;
+  raw_data?: any[];
 }
 
 export interface OLAPDimension {

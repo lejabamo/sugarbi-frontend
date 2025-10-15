@@ -59,20 +59,25 @@ export interface Estadisticas {
 
 export interface ChatResponse {
   success: boolean;
-  data: {
-    query: string;
-    intent: {
-      type: string;
-      metric: string;
-      dimension: string;
-      filters: any;
-      limit: number;
-    };
-    sql: string;
-    visualization: any;
-    raw_data: any[];
-    record_count: number;
+  query?: string;
+  intent?: {
+    type: string;
+    metrics: string[];
+    dimensions: string[];
+    filters: any;
+    limit: number;
   };
+  sql?: string;
+  visualization?: {
+    type: string;
+    title: string;
+    x_axis?: string;
+    y_axis?: string;
+    columns?: string[];
+  };
+  raw_data?: any[];
+  record_count?: number;
+  natural_response?: string;
   error?: string;
 }
 
@@ -162,7 +167,7 @@ class SugarBIService {
 
   // Procesar consulta del chatbot con LangChain
   async processChatQueryLangChain(query: string): Promise<ChatResponse> {
-    const response = await api.post('/api/chat/langchain', { query });
+    const response = await api.post('/api/chat', { query });
     return response.data;
   }
 
